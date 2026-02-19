@@ -21,7 +21,7 @@ export function registerCronTools(server: McpServer, client: DeployadoClient) {
       } catch (e) {
         return handleApiError(e);
       }
-    }
+    },
   );
 
   server.tool(
@@ -30,31 +30,33 @@ export function registerCronTools(server: McpServer, client: DeployadoClient) {
     {
       app_id: z.string().describe("App ID (UUID)"),
       name: z.string().describe("Cron job name"),
-      schedule: z
+      cron_expression: z
         .string()
         .describe("Cron schedule expression, e.g. '0 * * * *' for hourly"),
       command: z.string().describe("Shell command to execute"),
-      enabled: z
-        .boolean()
-        .optional()
-        .describe("Whether the cron job is enabled (default: true)"),
-      timezone: z
+      description: z
         .string()
         .optional()
-        .describe("Timezone, e.g. 'America/New_York' (default: UTC)"),
+        .describe("Description of the cron job"),
       timeout_seconds: z
         .number()
         .optional()
         .describe("Max execution time in seconds"),
     },
-    async ({ app_id, name, schedule, command, enabled, timezone, timeout_seconds }) => {
+    async ({
+      app_id,
+      name,
+      cron_expression,
+      command,
+      description,
+      timeout_seconds,
+    }) => {
       try {
         const data = await client.createCronJob(app_id, {
           name,
-          schedule,
+          cron_expression,
           command,
-          enabled,
-          timezone,
+          description,
           timeout_seconds,
         });
         return {
@@ -65,7 +67,7 @@ export function registerCronTools(server: McpServer, client: DeployadoClient) {
       } catch (e) {
         return handleApiError(e);
       }
-    }
+    },
   );
 
   server.tool(
@@ -74,22 +76,42 @@ export function registerCronTools(server: McpServer, client: DeployadoClient) {
     {
       app_id: z.string().describe("App ID (UUID)"),
       cron_id: z.string().describe("Cron job ID (UUID)"),
-      name: z.string().optional(),
-      schedule: z.string().optional(),
-      command: z.string().optional(),
-      enabled: z.boolean().optional(),
-      timezone: z.string().optional(),
-      timeout_seconds: z.number().optional(),
+      name: z.string().optional().describe("Cron job name"),
+      cron_expression: z
+        .string()
+        .optional()
+        .describe("Cron schedule expression"),
+      command: z.string().optional().describe("Shell command to execute"),
+      description: z.string().optional().describe("Description"),
+      status: z
+        .enum(["active", "paused"])
+        .optional()
+        .describe("Status (active or paused)"),
+      timeout_seconds: z
+        .number()
+        .optional()
+        .describe("Max execution time in seconds"),
     },
-    async ({ app_id, cron_id, name, schedule, command, enabled, timezone, timeout_seconds }) => {
+    async ({
+      app_id,
+      cron_id,
+      name,
+      cron_expression,
+      command,
+      description,
+      status,
+      timeout_seconds,
+    }) => {
       try {
         const params: Record<string, unknown> = {};
         if (name !== undefined) params.name = name;
-        if (schedule !== undefined) params.schedule = schedule;
+        if (cron_expression !== undefined)
+          params.cron_expression = cron_expression;
         if (command !== undefined) params.command = command;
-        if (enabled !== undefined) params.enabled = enabled;
-        if (timezone !== undefined) params.timezone = timezone;
-        if (timeout_seconds !== undefined) params.timeout_seconds = timeout_seconds;
+        if (description !== undefined) params.description = description;
+        if (status !== undefined) params.status = status;
+        if (timeout_seconds !== undefined)
+          params.timeout_seconds = timeout_seconds;
 
         const data = await client.updateCronJob(app_id, cron_id, params);
         return {
@@ -100,7 +122,7 @@ export function registerCronTools(server: McpServer, client: DeployadoClient) {
       } catch (e) {
         return handleApiError(e);
       }
-    }
+    },
   );
 
   server.tool(
@@ -114,14 +136,12 @@ export function registerCronTools(server: McpServer, client: DeployadoClient) {
       try {
         const data = await client.deleteCronJob(app_id, cron_id);
         return {
-          content: [
-            { type: "text", text: data.message },
-          ],
+          content: [{ type: "text", text: data.message }],
         };
       } catch (e) {
         return handleApiError(e);
       }
-    }
+    },
   );
 
   server.tool(
@@ -141,7 +161,7 @@ export function registerCronTools(server: McpServer, client: DeployadoClient) {
               text: JSON.stringify(
                 { message: data.message, run_id: data.run_id },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -149,6 +169,6 @@ export function registerCronTools(server: McpServer, client: DeployadoClient) {
       } catch (e) {
         return handleApiError(e);
       }
-    }
+    },
   );
 }

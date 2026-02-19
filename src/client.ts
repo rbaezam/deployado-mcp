@@ -350,10 +350,9 @@ export class DeployadoClient {
     appId: string,
     params: {
       name: string;
-      schedule: string;
+      cron_expression: string;
       command: string;
-      enabled?: boolean;
-      timezone?: string;
+      description?: string;
       timeout_seconds?: number;
     },
   ) {
@@ -610,13 +609,15 @@ export interface DomainVerification {
 export interface CronJob {
   id: string;
   name: string;
-  schedule: string;
+  cron_expression: string;
   command: string;
-  enabled: boolean;
-  timezone: string;
+  description: string | null;
+  status: string;
   timeout_seconds: number;
   last_run_at: string | null;
+  last_run_status: string | null;
   next_run_at: string | null;
+  run_count: number;
   inserted_at: string;
 }
 
