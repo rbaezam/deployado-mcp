@@ -8,7 +8,7 @@ export class DeployadoClient {
     method: string,
     path: string,
     body?: unknown,
-    timeoutMs = 30_000
+    timeoutMs = 30_000,
   ): Promise<T> {
     const url = `${this.config.baseUrl}${path}`;
     const res = await fetch(url, {
@@ -25,7 +25,10 @@ export class DeployadoClient {
 
     if (!res.ok) {
       const errorBody = await res.json().catch(() => ({}));
-      throw new DeployadoApiError(res.status, errorBody as Record<string, unknown>);
+      throw new DeployadoApiError(
+        res.status,
+        errorBody as Record<string, unknown>,
+      );
     }
 
     const text = await res.text();
@@ -65,13 +68,13 @@ export class DeployadoClient {
   async deleteApp(id: string) {
     return this.request<{ ok: boolean; message: string }>(
       "DELETE",
-      `/api/v1/apps/${id}`
+      `/api/v1/apps/${id}`,
     );
   }
 
   async deploy(
     appId: string,
-    params?: { branch?: string; commit_sha?: string }
+    params?: { branch?: string; commit_sha?: string },
   ) {
     return this.request<{
       ok: boolean;
@@ -82,7 +85,7 @@ export class DeployadoClient {
 
   async rollback(
     appId: string,
-    params?: { release_id?: string; version?: string }
+    params?: { release_id?: string; version?: string },
   ) {
     return this.request<{
       ok: boolean;
@@ -96,7 +99,7 @@ export class DeployadoClient {
     const qs = limit ? `?limit=${limit}` : "";
     return this.request<{ releases: Release[] }>(
       "GET",
-      `/api/v1/apps/${appId}/releases${qs}`
+      `/api/v1/apps/${appId}/releases${qs}`,
     );
   }
 
@@ -107,7 +110,7 @@ export class DeployadoClient {
     const qs = params.toString() ? `?${params}` : "";
     return this.request<{ logs: LogEntry[]; message?: string }>(
       "GET",
-      `/api/v1/apps/${appId}/logs${qs}`
+      `/api/v1/apps/${appId}/logs${qs}`,
     );
   }
 
@@ -117,21 +120,21 @@ export class DeployadoClient {
     const qs = limit ? `?limit=${limit}` : "";
     return this.request<{ deployments: Deployment[] }>(
       "GET",
-      `/api/v1/apps/${appId}/deployments${qs}`
+      `/api/v1/apps/${appId}/deployments${qs}`,
     );
   }
 
   async getDeployment(appId: string, deploymentId: string) {
     return this.request<{ deployment: Deployment }>(
       "GET",
-      `/api/v1/apps/${appId}/deployments/${deploymentId}`
+      `/api/v1/apps/${appId}/deployments/${deploymentId}`,
     );
   }
 
   async getCurrentDeployment(appId: string) {
     return this.request<{ deployment: Deployment }>(
       "GET",
-      `/api/v1/apps/${appId}/deployments/current`
+      `/api/v1/apps/${appId}/deployments/current`,
     );
   }
 
@@ -140,7 +143,7 @@ export class DeployadoClient {
   async listEnv(appId: string) {
     return this.request<{ env: Record<string, string> }>(
       "GET",
-      `/api/v1/apps/${appId}/env`
+      `/api/v1/apps/${appId}/env`,
     );
   }
 
@@ -148,14 +151,14 @@ export class DeployadoClient {
     return this.request<{ env: Record<string, string> }>(
       "PUT",
       `/api/v1/apps/${appId}/env`,
-      { env }
+      { env },
     );
   }
 
   async deleteEnv(appId: string, key: string) {
     return this.request<{ ok: boolean }>(
       "DELETE",
-      `/api/v1/apps/${appId}/env/${key}`
+      `/api/v1/apps/${appId}/env/${key}`,
     );
   }
 
@@ -179,6 +182,34 @@ export class DeployadoClient {
     return this.request<{ project: Project }>("GET", `/api/v1/projects/${id}`);
   }
 
+  async createProject(params: {
+    name: string;
+    description?: string;
+    repository_url?: string;
+    default_branch?: string;
+  }) {
+    return this.request<{ project: Project }>(
+      "POST",
+      "/api/v1/projects",
+      params,
+    );
+  }
+
+  async updateProject(id: string, params: Record<string, unknown>) {
+    return this.request<{ project: Project }>(
+      "PATCH",
+      `/api/v1/projects/${id}`,
+      params,
+    );
+  }
+
+  async deleteProject(id: string) {
+    return this.request<{ ok: boolean; message: string }>(
+      "DELETE",
+      `/api/v1/projects/${id}`,
+    );
+  }
+
   // ── Databases ──
 
   async listDatabases(projectId?: string, status?: string) {
@@ -188,14 +219,14 @@ export class DeployadoClient {
     const qs = params.toString() ? `?${params}` : "";
     return this.request<{ databases: Database[] }>(
       "GET",
-      `/api/v1/databases${qs}`
+      `/api/v1/databases${qs}`,
     );
   }
 
   async getDatabase(id: string) {
     return this.request<{ database: Database }>(
       "GET",
-      `/api/v1/databases/${id}`
+      `/api/v1/databases/${id}`,
     );
   }
 
@@ -203,32 +234,37 @@ export class DeployadoClient {
     return this.request<{ database: Database }>(
       "POST",
       "/api/v1/databases",
-      params
+      params,
     );
   }
 
   async deleteDatabase(id: string) {
     return this.request<{ ok: boolean; message: string }>(
       "DELETE",
-      `/api/v1/databases/${id}`
+      `/api/v1/databases/${id}`,
     );
   }
 
   async connectDatabase(
     databaseId: string,
-    params: { app_id: string; env_var_name?: string; driver?: string; use_ssl?: boolean }
+    params: {
+      app_id: string;
+      env_var_name?: string;
+      driver?: string;
+      use_ssl?: boolean;
+    },
   ) {
     return this.request<{ connection: DatabaseConnection }>(
       "POST",
       `/api/v1/databases/${databaseId}/connect`,
-      params
+      params,
     );
   }
 
   async disconnectDatabase(databaseId: string, connectionId: string) {
     return this.request<{ ok: boolean }>(
       "DELETE",
-      `/api/v1/databases/${databaseId}/connect/${connectionId}`
+      `/api/v1/databases/${databaseId}/connect/${connectionId}`,
     );
   }
 
@@ -241,7 +277,7 @@ export class DeployadoClient {
       "POST",
       `/api/v1/apps/${appId}/exec`,
       body,
-      65_000
+      65_000,
     );
   }
 
@@ -251,7 +287,7 @@ export class DeployadoClient {
     return this.request<Record<string, unknown>>(
       "POST",
       "/api/v1/blueprints/validate",
-      { content }
+      { content },
     );
   }
 
@@ -259,8 +295,203 @@ export class DeployadoClient {
     return this.request<Record<string, unknown>>(
       "POST",
       "/api/v1/blueprints/deploy",
-      params
+      params,
     );
+  }
+
+  // ── Domains ──
+
+  async listDomains(appId: string) {
+    return this.request<{ domains: AppDomain[]; subdomain: string }>(
+      "GET",
+      `/api/v1/apps/${appId}/domains`,
+    );
+  }
+
+  async addDomain(appId: string, hostname: string) {
+    return this.request<{ domain: AppDomain }>(
+      "POST",
+      `/api/v1/apps/${appId}/domains`,
+      { hostname },
+    );
+  }
+
+  async removeDomain(appId: string, domainId: string) {
+    return this.request<{ ok: boolean; message: string }>(
+      "DELETE",
+      `/api/v1/apps/${appId}/domains/${domainId}`,
+    );
+  }
+
+  async setPrimaryDomain(appId: string, domainId: string) {
+    return this.request<{ domain: AppDomain }>(
+      "PUT",
+      `/api/v1/apps/${appId}/domains/${domainId}/primary`,
+    );
+  }
+
+  async verifyDomains(appId: string) {
+    return this.request<{ results: DomainVerification[] }>(
+      "POST",
+      `/api/v1/apps/${appId}/domains/verify`,
+    );
+  }
+
+  // ── Cron Jobs ──
+
+  async listCronJobs(appId: string) {
+    return this.request<{ cron_jobs: CronJob[] }>(
+      "GET",
+      `/api/v1/apps/${appId}/cron`,
+    );
+  }
+
+  async createCronJob(
+    appId: string,
+    params: {
+      name: string;
+      schedule: string;
+      command: string;
+      enabled?: boolean;
+      timezone?: string;
+      timeout_seconds?: number;
+    },
+  ) {
+    return this.request<{ cron_job: CronJob }>(
+      "POST",
+      `/api/v1/apps/${appId}/cron`,
+      params,
+    );
+  }
+
+  async updateCronJob(
+    appId: string,
+    cronId: string,
+    params: Record<string, unknown>,
+  ) {
+    return this.request<{ cron_job: CronJob }>(
+      "PATCH",
+      `/api/v1/apps/${appId}/cron/${cronId}`,
+      params,
+    );
+  }
+
+  async deleteCronJob(appId: string, cronId: string) {
+    return this.request<{ ok: boolean; message: string }>(
+      "DELETE",
+      `/api/v1/apps/${appId}/cron/${cronId}`,
+    );
+  }
+
+  async runCronJob(appId: string, cronId: string) {
+    return this.request<{ ok: boolean; message: string; run_id: string }>(
+      "POST",
+      `/api/v1/apps/${appId}/cron/${cronId}/run`,
+    );
+  }
+
+  // ── Services ──
+
+  async listServiceTemplates(category?: string) {
+    const qs = category ? `?category=${category}` : "";
+    return this.request<{ templates: ServiceTemplate[] }>(
+      "GET",
+      `/api/v1/services/templates${qs}`,
+    );
+  }
+
+  async listServices(status?: string) {
+    const qs = status ? `?status=${status}` : "";
+    return this.request<{ services: Service[] }>(
+      "GET",
+      `/api/v1/services${qs}`,
+    );
+  }
+
+  async getService(id: string) {
+    return this.request<{ service: Service }>("GET", `/api/v1/services/${id}`);
+  }
+
+  async installService(params: {
+    template_id: string;
+    name: string;
+    config?: Record<string, unknown>;
+    memory_mb?: number;
+  }) {
+    return this.request<{ service: Service }>(
+      "POST",
+      "/api/v1/services",
+      params,
+    );
+  }
+
+  async startService(id: string) {
+    return this.request<{ ok: boolean; message: string; service: Service }>(
+      "POST",
+      `/api/v1/services/${id}/start`,
+    );
+  }
+
+  async stopService(id: string) {
+    return this.request<{ ok: boolean; message: string; service: Service }>(
+      "POST",
+      `/api/v1/services/${id}/stop`,
+    );
+  }
+
+  async restartService(id: string) {
+    return this.request<{ ok: boolean; message: string; service: Service }>(
+      "POST",
+      `/api/v1/services/${id}/restart`,
+    );
+  }
+
+  async deleteService(id: string, deleteVolumes?: boolean) {
+    const qs = deleteVolumes ? "?delete_volumes=true" : "";
+    return this.request<{ ok: boolean; message: string }>(
+      "DELETE",
+      `/api/v1/services/${id}${qs}`,
+    );
+  }
+
+  // ── Backups ──
+
+  async listBackupTargets() {
+    return this.request<{ targets: BackupTarget[] }>("GET", "/api/v1/backups");
+  }
+
+  async createBackupTarget(params: Record<string, unknown>) {
+    return this.request<{ target: BackupTarget }>(
+      "POST",
+      "/api/v1/backups",
+      params,
+    );
+  }
+
+  async getBackupTarget(id: string) {
+    return this.request<{ target: BackupTarget; runs: BackupRun[] }>(
+      "GET",
+      `/api/v1/backups/${id}`,
+    );
+  }
+
+  async runBackup(id: string) {
+    return this.request<{ ok: boolean; message: string; run_id: string }>(
+      "POST",
+      `/api/v1/backups/${id}/run`,
+    );
+  }
+
+  async restoreBackup(
+    targetId: string,
+    runId: string,
+    params?: { destination_target_id?: string; drop_first?: boolean },
+  ) {
+    return this.request<{
+      ok: boolean;
+      message: string;
+      restore_run_id: string;
+    }>("POST", `/api/v1/backups/${targetId}/restore/${runId}`, params ?? {});
   }
 }
 
@@ -359,4 +590,83 @@ export interface DatabaseConnection {
   app_name: string;
   env_var_name: string;
   connection_url: string;
+}
+
+export interface AppDomain {
+  id: string;
+  hostname: string;
+  status: string;
+  is_primary: boolean;
+  inserted_at: string;
+}
+
+export interface DomainVerification {
+  hostname: string;
+  status: string;
+  expected_value: string;
+  current_value: string | null;
+}
+
+export interface CronJob {
+  id: string;
+  name: string;
+  schedule: string;
+  command: string;
+  enabled: boolean;
+  timezone: string;
+  timeout_seconds: number;
+  last_run_at: string | null;
+  next_run_at: string | null;
+  inserted_at: string;
+}
+
+export interface ServiceTemplate {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  category: string;
+  docker_image: string;
+  default_port: number;
+  logo_url: string;
+  is_featured: boolean;
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  docker_image: string;
+  docker_tag: string;
+  subdomain: string;
+  memory_mb: number;
+  error_message: string | null;
+  installed_at: string | null;
+  inserted_at: string;
+}
+
+export interface BackupTarget {
+  id: string;
+  name: string;
+  db_name: string;
+  db_user: string;
+  db_host: string;
+  db_port: number;
+  enabled: boolean;
+  schedule_daily_at: string;
+  retention_keep_last_n: number;
+  server_id: string;
+  server_name: string | null;
+  inserted_at: string;
+}
+
+export interface BackupRun {
+  id: string;
+  status: string;
+  started_at: string | null;
+  finished_at: string | null;
+  size_bytes: number | null;
+  error_message: string | null;
+  inserted_at: string;
 }
