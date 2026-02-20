@@ -38,7 +38,21 @@ export function registerAppTools(server: McpServer, client: DeployadoClient) {
 
   server.tool(
     "deployado_create_app",
-    "Create a new app in a project.",
+    `Create a new app in a project.
+
+IMPORTANT: Apps with a repository_url are built using Docker. The repository MUST contain a Dockerfile (at dockerfile_path, default "Dockerfile" relative to build_context).
+
+For static websites (HTML/CSS/JS), add a simple Dockerfile:
+  FROM nginx:alpine
+  COPY . /usr/share/nginx/html
+  EXPOSE 80
+
+Key parameters:
+- repository_url: Git repo URL (HTTPS). Required for repo-based apps.
+- dockerfile_path: Path to Dockerfile relative to build_context (default: "Dockerfile").
+- build_context: Subdirectory where Docker build runs, relative to repo root (default: "."). Use this when your site is in a subfolder (e.g. "website").
+- port: The port your app listens on inside the container. For nginx use 80, for Node.js typically 3000 or 8080.
+- branch: Git branch to build from (default: "main").`,
     {
       project_id: z.string().describe("Project ID to create the app in"),
       name: z.string().describe("App name"),
@@ -103,7 +117,15 @@ export function registerAppTools(server: McpServer, client: DeployadoClient) {
 
   server.tool(
     "deployado_deploy",
-    "Trigger a new deployment for an app. Returns immediately with release info while the deployment runs in the background.",
+    `Trigger a new deployment for an app. Returns immediately with a release_id while the build runs in the background.
+
+The deployment process: source code is cloned → Docker image is built → image is pushed → container is deployed.
+
+After triggering:
+- Use deployado_get_release with the returned release_id to check build status (queued → pending → building → ready or failed).
+- If the build fails, use deployado_get_build_logs with the release_id to see the Docker build output.
+- commit_sha is optional — if omitted, the latest commit from the configured branch is used.
+- For runtime container logs after deployment, use deployado_get_logs.`,
     {
       app_id: z.string().describe("App ID (UUID)"),
       branch: z.string().optional().describe("Branch to deploy (defaults to app's configured branch)"),
@@ -143,7 +165,7 @@ export function registerAppTools(server: McpServer, client: DeployadoClient) {
 
   server.tool(
     "deployado_list_releases",
-    "List available releases for an app, showing version history.",
+    "List available releases for an app, showing version history and build status. Each release has a status: queued, pending, building, ready (success), or failed. Use deployado_get_build_logs with a release_id to see build output.",
     {
       app_id: z.string().describe("App ID (UUID)"),
       limit: z.number().optional().describe("Max number of releases to return (default 10, max 50)"),
@@ -164,7 +186,7 @@ export function registerAppTools(server: McpServer, client: DeployadoClient) {
 
   server.tool(
     "deployado_get_logs",
-    "Fetch recent logs from a running app's container.",
+    "Fetch recent runtime logs from a running app's container. NOTE: These are runtime/application logs, NOT build logs. To see build output (e.g. why a deploy failed), use deployado_get_build_logs instead.",
     {
       app_id: z.string().describe("App ID (UUID)"),
       lines: z.number().optional().describe("Number of log lines to return (default 100)"),
@@ -187,6 +209,66 @@ export function registerAppTools(server: McpServer, client: DeployadoClient) {
           content: [
             { type: "text", text: data.message || "No logs available" },
           ],
+        };
+      } catch (e) {
+        return handleApiError(e);
+      }
+    }
+  );
+
+  server.tool(
+    "deployado_get_release",
+    "Get detailed information about a specific release, including build status, commit info, and error details. Use this to check if a build succeeded or failed after triggering a deploy.",
+    {
+      app_id: z.string().describe("App ID (UUID)"),
+      release_id: z
+        .string()
+        .describe("Release ID (UUID) — returned by deployado_deploy"),
+    },
+    async ({ app_id, release_id }) => {
+      try {
+        const data = await client.getRelease(app_id, release_id);
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(data.release, null, 2) },
+          ],
+        };
+      } catch (e) {
+        return handleApiError(e);
+      }
+    }
+  );
+
+  server.tool(
+    "deployado_get_build_logs",
+    `Fetch build logs for a specific release. Use this to diagnose why a build failed.
+
+Returns the Docker build output, including Dockerfile parsing errors, dependency installation logs, and compilation output. If the build is still in progress, returns partial logs collected so far.
+
+IMPORTANT: This returns BUILD logs (from the Docker build process), not runtime container logs. For runtime logs of a running app, use deployado_get_logs instead.`,
+    {
+      app_id: z.string().describe("App ID (UUID)"),
+      release_id: z
+        .string()
+        .describe(
+          "Release ID (UUID) — returned by deployado_deploy or deployado_list_releases"
+        ),
+    },
+    async ({ app_id, release_id }) => {
+      try {
+        const data = await client.getBuildLogs(app_id, release_id);
+        const parts: string[] = [];
+        parts.push(`Build Status: ${data.status}`);
+        if (data.duration_seconds)
+          parts.push(`Duration: ${data.duration_seconds}s`);
+        if (data.error_message) parts.push(`Error: ${data.error_message}`);
+        if (data.started_at) parts.push(`Started: ${data.started_at}`);
+        if (data.finished_at) parts.push(`Finished: ${data.finished_at}`);
+        parts.push("");
+        parts.push("--- Build Output ---");
+        parts.push(data.logs || "(no logs available yet)");
+        return {
+          content: [{ type: "text", text: parts.join("\n") }],
         };
       } catch (e) {
         return handleApiError(e);

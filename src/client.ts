@@ -103,6 +103,28 @@ export class DeployadoClient {
     );
   }
 
+  async getRelease(appId: string, releaseId: string) {
+    return this.request<{
+      release: Release & {
+        branch: string;
+        build_error: string | null;
+        build_started_at: string | null;
+        build_completed_at: string | null;
+      };
+    }>("GET", `/api/v1/apps/${appId}/releases/${releaseId}`);
+  }
+
+  async getBuildLogs(appId: string, releaseId: string) {
+    return this.request<{
+      logs: string;
+      status: string;
+      duration_seconds: number | null;
+      error_message: string | null;
+      started_at: string | null;
+      finished_at: string | null;
+    }>("GET", `/api/v1/apps/${appId}/releases/${releaseId}/logs`);
+  }
+
   async getLogs(appId: string, lines?: number, timestamps?: boolean) {
     const params = new URLSearchParams();
     if (lines) params.set("lines", String(lines));
