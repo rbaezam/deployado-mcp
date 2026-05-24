@@ -13,6 +13,8 @@ import { registerDomainTools } from "./domains.js";
 import { registerCronTools } from "./cron.js";
 import { registerServiceTools } from "./services.js";
 import { registerBackupTools } from "./backups.js";
+import { registerDoctorTools } from "./doctor.js";
+import { registerReleaseTools } from "./releases.js";
 
 export function registerAllTools(server: McpServer, client: DeployadoClient) {
   registerAccountTools(server, client);
@@ -28,4 +30,6 @@ export function registerAllTools(server: McpServer, client: DeployadoClient) {
   registerCronTools(server, client);
   registerServiceTools(server, client);
   registerBackupTools(server, client);
+  registerDoctorTools(server, client);
+  registerReleaseTools(server, client);
 }

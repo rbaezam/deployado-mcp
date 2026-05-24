@@ -125,6 +125,26 @@ export class DeployadoClient {
     }>("GET", `/api/v1/apps/${appId}/releases/${releaseId}/logs`);
   }
 
+  /**
+   * Cross-app build log fetch — same response shape as getBuildLogs,
+   * but doesn't require the caller to know the app id. Useful for AI
+   * agents and CLI users who only have a release UUID from a `doctor`
+   * or `deploy --watch` error hint.
+   *
+   * Backed by the new H1 server endpoint:
+   *   GET /api/v1/releases/:release_id/logs
+   */
+  async getBuildLogsByRelease(releaseId: string) {
+    return this.request<{
+      logs: string;
+      status: string;
+      duration_seconds: number | null;
+      error_message: string | null;
+      started_at: string | null;
+      finished_at: string | null;
+    }>("GET", `/api/v1/releases/${releaseId}/logs`);
+  }
+
   async getLogs(appId: string, lines?: number, timestamps?: boolean) {
     const params = new URLSearchParams();
     if (lines) params.set("lines", String(lines));

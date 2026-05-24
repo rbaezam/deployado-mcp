@@ -38,7 +38,11 @@ Add to `~/.claude/settings.json`:
 
 Then restart Claude Code.
 
-## Available Tools (28)
+## Available Tools
+
+### Diagnostics (new)
+- `deployado_doctor` — Run the full diagnostic checklist on one app (deployment status, latest build, target server, instance count, HTTP probe of primary domain, env vars). Returns structured `{ summary, checks }` with stable status labels (`pass`/`info`/`warn`/`fail`). First stop when triaging a misbehaving app.
+- `deployado_release_logs` — Fetch the docker build transcript for a release. Works for in-progress AND finished builds. Use when investigating a build failure — pass the release UUID from `deployado deploy` output or from a deployment's `release_id` field. Supports `tail` to truncate.
 
 ### Account
 - `deployado_whoami` — Current account and token info
