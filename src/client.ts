@@ -550,6 +550,7 @@ export interface App {
   build_context: string;
   target_server_id: string;
   auto_deploy_enabled: boolean;
+  deploy_gate_enabled: boolean;
 }
 
 export interface Release {

@@ -86,6 +86,12 @@ Key parameters:
       dockerfile_path: z.string().optional().describe("Path to Dockerfile"),
       build_context: z.string().optional().describe("Docker build context path"),
       auto_deploy_enabled: z.boolean().optional().describe("Enable auto-deploy on git push"),
+      deploy_gate_enabled: z
+        .boolean()
+        .optional()
+        .describe(
+          "Gate auto-deploys on GitHub CI: only deploy a pushed commit if its combined status / check-runs pass (pending defers, failure skips)",
+        ),
     },
     async ({ app_id, ...params }) => {
       try {
