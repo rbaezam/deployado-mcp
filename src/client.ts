@@ -551,6 +551,8 @@ export interface App {
   target_server_id: string;
   auto_deploy_enabled: boolean;
   deploy_gate_enabled: boolean;
+  auto_rollback_enabled: boolean;
+  rollback_window_seconds: number;
 }
 
 export interface Release {

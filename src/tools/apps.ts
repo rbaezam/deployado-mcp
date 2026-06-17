@@ -92,6 +92,16 @@ Key parameters:
         .describe(
           "Gate auto-deploys on GitHub CI: only deploy a pushed commit if its combined status / check-runs pass (pending defers, failure skips)",
         ),
+      auto_rollback_enabled: z
+        .boolean()
+        .optional()
+        .describe(
+          "Watch a deployment for rollback_window_seconds after it goes healthy and auto-rollback to the previous release if health degrades",
+        ),
+      rollback_window_seconds: z
+        .number()
+        .optional()
+        .describe("Post-deploy health observation window in seconds (30-3600, default 300)"),
     },
     async ({ app_id, ...params }) => {
       try {
