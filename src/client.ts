@@ -1,5 +1,6 @@
 import { DeployadoConfig } from "./config.js";
 import { DeployadoApiError } from "./errors.js";
+import { VERSION } from "./version.js";
 
 export class DeployadoClient {
   constructor(private config: DeployadoConfig) {}
@@ -17,7 +18,7 @@ export class DeployadoClient {
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${this.config.apiToken}`,
-        "User-Agent": "deployado-mcp/1.0",
+        "User-Agent": `deployado-mcp/${VERSION}`,
       },
       body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(timeoutMs),

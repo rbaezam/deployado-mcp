@@ -2,18 +2,34 @@
   "name": "deployado-mcp",
   "version": "1.0.0",
   "description": "MCP server for Deployado PaaS — deploy, manage apps, databases, and services from any MCP client",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "deployado",
+    "paas",
+    "deploy",
+    "claude",
+    "ai-agents"
+  ],
+  "homepage": "https://deployado.com/en/docs/mcp",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "deployado-mcp": "dist/index.js"
   },
+  "files": [
+    "dist/**/*.js",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "node scripts/smoke-test.mjs",
+    "prepublishOnly": "npm run build && npm test"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
@@ -23,5 +39,8 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
