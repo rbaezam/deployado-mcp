@@ -12,6 +12,7 @@
     "ai-agents"
   ],
   "homepage": "https://deployado.com/en/docs/mcp",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
