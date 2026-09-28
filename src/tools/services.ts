@@ -84,7 +84,7 @@ export function registerServiceTools(
         ),
       name: z.string().describe("Name for the service instance"),
       config: z
-        .record(z.unknown())
+        .record(z.string(), z.unknown())
         .optional()
         .describe("Service-specific configuration"),
       memory_mb: z
