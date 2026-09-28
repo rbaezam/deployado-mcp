@@ -10,7 +10,7 @@ Docs: https://deployado.com/en/docs/mcp
 
 ## Requirements
 
-- Node.js 20 or newer (`npx` comes with it)
+- Node.js 22 or newer (`npx` comes with it). Node 20 reached end of life in April 2026.
 - A Deployado API token: **Settings → API Tokens**
   (https://deployado.com/settings/api-tokens). This is separate from the CLI's
   `deployado auth login`.
