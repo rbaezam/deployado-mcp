@@ -116,7 +116,7 @@ export function registerProjectTools(
 
   server.tool(
     "deployado_delete_project",
-    "Delete a project and all its associated apps. This action cannot be undone.",
+    "Delete a project and all its associated apps, stopping and removing each app's containers. Fails with 409 deploy_in_progress while one of its apps is being deployed. This action cannot be undone.",
     {
       project_id: z.string().describe("Project ID (UUID)"),
     },

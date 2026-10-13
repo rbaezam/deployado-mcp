@@ -117,7 +117,7 @@ Key parameters:
 
   server.tool(
     "deployado_delete_app",
-    "Permanently delete an app and all its deployments, releases, and environment variables. This action cannot be undone.",
+    "Permanently delete an app and all its deployments, releases, and environment variables. Its running containers are stopped and removed on the app server (queued agent action). Fails with 409 deploy_in_progress while a deploy is executing; retry once it finishes. This action cannot be undone.",
     { app_id: z.string().describe("App ID (UUID)") },
     async ({ app_id }) => {
       try {
